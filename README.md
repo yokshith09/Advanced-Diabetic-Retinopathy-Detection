@@ -1,122 +1,153 @@
-# EarlyDR — Diabetic Retinopathy Detection Project
+<div align="center">
+  <h1>👁️ EarlyDR</h1>
+  <p><b>Advanced Diabetic Retinopathy Detection using Deep Learning</b></p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+  [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103&style=for-the-badge)](https://github.com/ellerbrock/open-source-badges/)
+  [![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)](https://pytorch.org/)
+</div>
+
+<br/>
 
 > **Note:** This project is completely open-source and currently under active development. Our present focus is primarily on experimenting with various deep learning architectures and improving our evaluation metrics.
 
-## Problem Statement
+---
 
-Diabetic Retinopathy (DR) is a leading cause of blindness worldwide, stemming from diabetes complications that damage the retina's blood vessels. Early detection and timely treatment are critical to preventing irreversible vision loss. However, manual screening by ophthalmologists is resource-intensive, time-consuming, and prone to human error, particularly in regions with limited access to specialized eye care.
-
-The objective of this project is to automate the detection and grading of Diabetic Retinopathy from retinal fundus images using advanced deep learning techniques. By developing robust and efficient models (such as CNNs and Vision Transformers), we aim to provide an accessible and reliable screening tool that assists clinicians in diagnosing DR severity faster and more accurately.
+## 📖 Table of Contents
+- [Problem Statement](#-problem-statement)
+- [Scope & Dataset Overview](#-scope--dataset-overview)
+- [Project Highlights](#-project-highlights)
+- [Getting Started](#-getting-started)
+  - [Environment Setup](#0-environment-setup)
+  - [Kaggle API Key](#1-get-a-kaggle-api-key)
+  - [Download the Dataset](#2-download-the-dataset)
+- [Usage](#-usage)
+  - [Exploratory Data Analysis (EDA)](#3-exploratory-data-analysis-eda)
+  - [Model Training](#4-model-training)
+  - [Comparing Results](#5-comparing-your-results)
+- [Directory Structure](#-folder-structure)
 
 ---
 
-## Scope & Dataset Overview
+## 🎯 Problem Statement
 
-Scoped down to the smallest dataset combination that still supports the full project:
-the pre-resized APTOS 2019 set (already sorted into class folders, ~200-300 MB) as the
-main training set, with IDRiD (~200 MB, IEEE Dataport) as an optional smaller add-on for
-cross-dataset testing later. EyePACS is intentionally left out.
+**Diabetic Retinopathy (DR)** is a leading cause of blindness worldwide, stemming from diabetes complications that damage the retina's blood vessels. Early detection and timely treatment are critical to preventing irreversible vision loss. However, manual screening by ophthalmologists is resource-intensive, time-consuming, and prone to human error, particularly in regions with limited access to specialized eye care.
 
-Run everything below **on your own machine or in Colab/Kaggle** — Kaggle and IEEE
-Dataport aren't reachable from this sandbox, so downloading needs your own connection
-and account.
+The objective of this project is to automate the detection and grading of Diabetic Retinopathy from retinal fundus images using advanced deep learning techniques. By developing robust and efficient models (such as **CNNs** and **Vision Transformers**), we aim to provide an accessible and reliable screening tool that assists clinicians in diagnosing DR severity faster and more accurately.
 
 ---
 
-## 0. Environment setup
+## 📊 Scope & Dataset Overview
+
+We have scoped down the project to the most efficient dataset combination that still supports full robust training:
+
+- **Primary Training Set**: The pre-resized [APTOS 2019 dataset](https://www.kaggle.com/datasets/sovitrath/diabetic-retinopathy-224x224-gaussian-filtered) (already sorted into class folders, ~200-300 MB).
+- **Secondary Testing Set**: [IDRiD dataset](https://ieee-dataport.org/open-access/indian-diabetic-retinopathy-image-dataset-idrid) (~200 MB, IEEE Dataport) serving as an optional smaller add-on for cross-dataset testing later.
+- *Note: The massive EyePACS dataset is intentionally left out to prioritize rapid prototyping.*
+
+> **Important:** Run all steps below **on your own machine or in Colab/Kaggle** — Kaggle and IEEE Dataport require authentication, so downloading needs your own connection and account.
+
+---
+
+## ✨ Project Highlights
+
+- **Multi-Architecture Support**: Seamlessly train ResNet50, Vision Transformers (ViT), MobileNetV3, and more.
+- **Automated Stratified Splits**: Guaranteed reproducible train/val/test splits across teams.
+- **Class-Weighted Optimization**: Built-in cross-entropy weighting targets the challenging Mild/Moderate DR recall objective.
+- **Metric Tracking**: Automatically evaluates **Quadratic Weighted Kappa (QWK)** and per-class recall.
+
+---
+
+## 🚀 Getting Started
+
+### 0. Environment Setup
 
 ```bash
-python3 -m venv venv && source venv/bin/activate    # Windows: venv\Scripts\activate
+# Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate    # On Windows use: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
-GPU users: install the CUDA build of PyTorch from https://pytorch.org/get-started/locally/
-first, then re-run the line above for the rest.
 
----
+> 💡 **GPU Users:** Install the CUDA build of PyTorch from [pytorch.org](https://pytorch.org/get-started/locally/) first, then re-run the pip install command.
 
-## 1. Get a Kaggle API key
+### 1. Get a Kaggle API Key
 
-1. https://www.kaggle.com/settings/account → "Create New Token" → downloads `kaggle.json`.
-2. Place it at `~/.kaggle/kaggle.json` (macOS/Linux) or `C:\Users\<you>\.kaggle\kaggle.json`.
-3. `chmod 600 ~/.kaggle/kaggle.json`.
+1. Go to [Kaggle Account Settings](https://www.kaggle.com/settings/account).
+2. Click **"Create New Token"** to download `kaggle.json`.
+3. Place it in the appropriate directory:
+   - **macOS/Linux**: `~/.kaggle/kaggle.json` (Run `chmod 600 ~/.kaggle/kaggle.json` for security)
+   - **Windows**: `C:\Users\<your-username>\.kaggle\kaggle.json`
 
----
+### 2. Download the Dataset
 
-## 2. Download the dataset
+**APTOS 2019 (Small pre-resized version)** — *Main dataset*  
+This dataset is already resized to 224×224, Gaussian-filtered, and sorted into 5 class folders (`No_DR`, `Mild`, `Moderate`, `Severe`, `Proliferate_DR`).
 
-**APTOS 2019, small pre-resized version** (main dataset, use this one):
-- Link: https://www.kaggle.com/datasets/sovitrath/diabetic-retinopathy-224x224-gaussian-filtered
 ```bash
 bash scripts/download_aptos_small.sh
 ```
-Already resized to 224×224 and Gaussian-filtered, sorted into 5 class folders
-(No_DR, Mild, Moderate, Severe, Proliferate_DR) — no manual preprocessing needed.
 
-**IDRiD** (optional, small — for later cross-dataset testing):
-- Link: https://ieee-dataport.org/open-access/indian-diabetic-retinopathy-image-dataset-idrid
-- Needs a free IEEE Dataport account (no CLI/API) — download the **"B. Disease Grading"**
-  sub-folder only (~200 MB), unzip into `data/raw/idrid/`.
+**IDRiD (Optional)** — *For cross-dataset testing*  
+Requires a free IEEE Dataport account. Download the **"B. Disease Grading"** sub-folder only (~200 MB) and unzip it into `data/raw/idrid/`.
 
 ---
 
-## 3. EDA
+## 💻 Usage
+
+### 3. Exploratory Data Analysis (EDA)
+
+Visualize the class distribution and sample images to understand the dataset better.
 
 ```bash
 python scripts/eda.py --data_dir data/raw/aptos_small/gaussian_filtered_images
 ```
-Writes a class-distribution bar chart and a sample image grid to `outputs/eda/` — use
-these directly in your documentation's dataset section.
+*Outputs are saved to `outputs/eda/`, providing a clear view for your documentation.*
 
----
+### 4. Model Training
 
-## 4. Train
-
-One script, works for all three architecture tracks — just change `--model`:
+Our unified script works for all three architecture tracks. Just swap out the `--model` parameter!
 
 ```bash
+# ResNet50
 python scripts/train.py --data_dir data/raw/aptos_small/gaussian_filtered_images --model resnet50
+
+# Vision Transformer (ViT)
 python scripts/train.py --data_dir data/raw/aptos_small/gaussian_filtered_images --model vit_base_patch16_224
+
+# MobileNetV3
 python scripts/train.py --data_dir data/raw/aptos_small/gaussian_filtered_images --model mobilenetv3_small_100
 ```
 
-What it does automatically:
-- Stratified 70/15/15 train/val/test split (fixed seed = 42, so it's reproducible —
-  everyone on the team gets the same split if they run it with the same seed)
-- Class-weighted cross-entropy loss (targets the Mild/Moderate recall objective)
-- Standard augmentation (flips, rotation, color jitter)
-- Tracks **quadratic weighted kappa** (the standard DR metric) and per-class recall every epoch
-- Saves the best checkpoint by validation QWK to `outputs/checkpoints/<model>_best.pt`
-- Runs a final test-set evaluation and writes accuracy, QWK, per-class recall, and the
-  confusion matrix to `outputs/checkpoints/<model>_results.json`
+**What the script automates:**
+- Stratified 70/15/15 split (fixed `seed=42` for team coordination).
+- Class-weighted cross-entropy loss.
+- Standard augmentations (flips, rotation, color jitter).
+- Saves the best checkpoint (by validation QWK) to `outputs/checkpoints/<model>_best.pt`.
+- Saves final results (Accuracy, QWK, Recall, Confusion Matrix) to `outputs/checkpoints/<model>_results.json`.
 
-Useful flags: `--epochs` (default 15), `--batch_size` (default 32), `--lr` (default 1e-4),
-`--image_size` (default 224). Any [timm](https://github.com/huggingface/pytorch-image-models)
-model name works for `--model` — swap in `efficientnet_b0`, `deit_base_patch16_224`,
-`mobilenetv2_100`, etc. if your track needs a different variant.
+> **Pro Tip:** Use flags like `--epochs`, `--batch_size`, `--lr`, and `--image_size` to customize your training run. You can also use any model from the [timm](https://github.com/huggingface/pytorch-image-models) library.
 
-**Team coordination:** since the split is generated with a fixed seed inside the script,
-all three of you get an identical train/val/test split automatically as long as you keep
-`--seed 42` (the default) — no separate split-freezing step needed for this smaller setup.
+### 5. Comparing Your Results
 
----
+To evaluate performance, compare each model's `outputs/checkpoints/<model>_results.json`. 
 
-## 5. Comparing your results
+**Literature Benchmarks (APTOS)**:
+- ResNet50 ≈ 0.90 QWK
+- DenseNet121 ≈ 0.91 QWK
+- EfficientNetB0 (tuned) ≈ 0.92 QWK
+- MobileNetV3+ordinal head ≈ 0.90 QWK
 
-Put each model's `outputs/checkpoints/<model>_results.json` side by side — accuracy, QWK,
-and per-class recall — for the Review 2 comparison table. Reference points from the
-published literature (all on APTOS) to sanity-check against: ResNet50 ≈ 0.90 QWK,
-DenseNet121 ≈ 0.91 QWK, EfficientNetB0 (tuned) ≈ 0.92 QWK, MobileNetV3+ordinal head ≈ 0.90
-QWK. A realistic target band for a well-tuned model here is roughly 0.85-0.92 QWK — don't
-be alarmed if your first run is lower before tuning (Milestone 2 in your roadmap doc).
+*A realistic target band for a well-tuned model is roughly 0.85-0.92 QWK.*
 
 ---
 
-## Folder structure
+## 📂 Folder Structure
 
-```
+```text
 EarlyDR-Project/
 ├── README.md
 ├── requirements.txt
@@ -124,11 +155,17 @@ EarlyDR-Project/
 ├── scripts/
 │   ├── download_aptos_small.sh   ← the dataset to use
 │   ├── eda.py
-│   └── train.py                   ← one script, all 3 architecture tracks
-├── data/raw/aptos_small/          ← downloaded data goes here
+│   └── train.py                  ← one script, all 3 architecture tracks
+├── data/raw/aptos_small/         ← downloaded data goes here
 ├── outputs/
-│   ├── eda/                       ← class distribution + sample grid
-│   └── checkpoints/               ← best model .pt + results.json per architecture
-├── docs/                          ← Review-1 documentation + member roadmaps
-└── ui/                             ← screening console + about page
+│   ├── eda/                      ← class distribution + sample grid
+│   └── checkpoints/              ← best model .pt + results.json per architecture
+├── docs/                         ← Review-1 documentation + member roadmaps
+└── ui/                           ← screening console + about page
 ```
+
+---
+
+<div align="center">
+  <b>Built with ❤️ by the EarlyDR Team</b>
+</div>
