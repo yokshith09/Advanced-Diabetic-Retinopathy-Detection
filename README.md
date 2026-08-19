@@ -1,4 +1,19 @@
-# EarlyDR — Project Setup Guide (small-dataset scope)
+# EarlyDR — Diabetic Retinopathy Detection Project
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/)
+
+> **Note:** This project is completely open-source and currently under active development. Our present focus is primarily on experimenting with various deep learning architectures and improving our evaluation metrics.
+
+## Problem Statement
+
+Diabetic Retinopathy (DR) is a leading cause of blindness worldwide, stemming from diabetes complications that damage the retina's blood vessels. Early detection and timely treatment are critical to preventing irreversible vision loss. However, manual screening by ophthalmologists is resource-intensive, time-consuming, and prone to human error, particularly in regions with limited access to specialized eye care.
+
+The objective of this project is to automate the detection and grading of Diabetic Retinopathy from retinal fundus images using advanced deep learning techniques. By developing robust and efficient models (such as CNNs and Vision Transformers), we aim to provide an accessible and reliable screening tool that assists clinicians in diagnosing DR severity faster and more accurately.
+
+---
+
+## Scope & Dataset Overview
 
 Scoped down to the smallest dataset combination that still supports the full project:
 the pre-resized APTOS 2019 set (already sorted into class folders, ~200-300 MB) as the
