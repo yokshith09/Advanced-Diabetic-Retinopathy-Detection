@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EarlyDR — Screening Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A1412;
+    --bg-2: #0D1917;
+    --panel: #111E1B;
+    --panel-2: #16241F;
+    --border: #223330;
+    --border-soft: #1A2825;
+    --text: #ECEEE9;
+    --text-muted: #8CA39A;
+    --text-faint: #5C736B;
+    --copper: #C4661F;
+    --copper-dim: #8C4A18;
+    --teal: #35B08F;
+    --g-nodr: #35B08F;
+    --g-mild: #C4B23E;
+    --g-mod: #D9902C;
+    --g-severe: #C4551F;
+    --g-prolif: #8E2A22;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--copper); color: #0A1412; }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+  }
+
+  /* ---------- NAV ---------- */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px 36px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 40px;
+  }
+  .wordmark {
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .wordmark .name {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .wordmark .name em { color: var(--copper); font-style: normal; }
+  .wordmark .tag {
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.04em;
+  }
+  .status-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 6px 12px 6px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+
+  .nav-right { display: flex; align-items: center; gap: 18px; }
+  .tabs {
+    display: flex; gap: 2px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+  }
+  .tab-btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .18s, color .18s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { background: var(--copper); color: #0A1412; }
+
+  /* ---------- PAGES ---------- */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn .35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- ABOUT PAGE ---------- */
+  .about-hero { max-width: 62ch; padding-bottom: 40px; }
+  .about-hero h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 34px;
+    line-height: 1.16;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+  .about-hero p { color: var(--text-muted); font-size: 15px; line-height: 1.7; margin: 0; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 52px;
+  }
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  }
+  .stat-card .num {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--copper);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-card .lbl { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
+
+  .about-section { margin-bottom: 52px; }
+  .about-section .eyebrow { margin-bottom: 12px; }
+  .about-section h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    margin: 0 0 20px;
+  }
+  .about-section > p.body-text {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    line-height: 1.75;
+    max-width: 72ch;
+    margin: 0 0 20px;
+  }
+
+  .sdg-card {
+    display: flex; gap: 18px; align-items: flex-start;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .sdg-badge {
+    flex-shrink: 0;
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    background: var(--teal);
+    color: #0A1412;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .sdg-badge .n { font-size: 20px; font-weight: 600; line-height: 1; }
+  .sdg-badge .s { font-size: 8px; letter-spacing: 0.04em; margin-top: 2px; }
+  .sdg-card .stitle { font-family: 'Fraunces', serif; font-size: 16.5px; font-weight: 600; margin-bottom: 6px; }
+  .sdg-card .stext { color: var(--text-muted); font-size: 13.5px; line-height: 1.7; }
+
+  .card-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .info-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    border-top: 2px solid var(--border);
+  }
+  .info-card.accent-purple { border-top-color: #7F77DD; }
+  .info-card.accent-teal { border-top-color: var(--teal); }
+  .info-card.accent-copper { border-top-color: var(--copper); }
+  .info-card .ik { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+  .info-card h4 { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+  .info-card p { font-size: 12.8px; color: var(--text-muted); line-height: 1.65; margin: 0; }
+  .info-card .meta-row { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-soft); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-faint); }
+
+  .novelty-list { display: flex; flex-direction: column; gap: 14px; }
+  .novelty-item { display: flex; gap: 14px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+  .novelty-item .nn { font-family: 'IBM Plex Mono', monospace; color: var(--copper); font-size: 13px; flex-shrink: 0; }
+  .novelty-item .nt { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+  .novelty-item .nt b { font-weight: 500; color: var(--text); }
+
+  @media (max-width: 880px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .card-grid-3 { grid-template-columns: 1fr; }
+    .nav { flex-direction: column; align-items: flex-start; gap: 14px; }
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 56px;
+    align-items: center;
+    padding-bottom: 56px;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 42px;
+    line-height: 1.12;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  h1 em { font-style: italic; color: var(--text-muted); font-weight: 400; }
+  .hero p.lead {
+    color: var(--text-muted);
+    font-size: 15.5px;
+    line-height: 1.65;
+    max-width: 46ch;
+    margin: 0 0 28px;
+  }
+  .scale-strip {
+    display: flex;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 34px;
+    border: 1px solid var(--border);
+  }
+  .scale-strip div {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: rgba(10,20,18,0.75);
+    font-weight: 500;
+  }
+  .scale-labels {
+    display: flex;
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+  }
+  .scale-labels span { flex: 1; text-align: center; }
+
+  /* ---------- GAUGE (signature element) ---------- */
+  .gauge-card {
+    background: radial-gradient(120% 120% at 50% 0%, #14231F 0%, #0E1917 70%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 34px 30px 26px;
+    text-align: center;
+    position: relative;
+  }
+  .gauge-card .cap {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  #gaugeSvg { width: 230px; height: 140px; }
+  .gauge-readout {
+    margin-top: -6px;
+  }
+  .gauge-grade {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    transition: color .4s ease;
+  }
+  .gauge-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* ---------- WORKSPACE ---------- */
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    padding-top: 8px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  }
+  .panel h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* Dropzone */
+  .dropzone {
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    min-height: 260px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-2);
+  }
+  .dropzone:hover, .dropzone.drag { border-color: var(--copper); background: #12201C; }
+  .dropzone img { position:absolute; inset:0; width:100%; height:100%; object-fit: cover; }
+  .dropzone .scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(0deg, rgba(10,20,18,0.75), rgba(10,20,18,0.15));
+    display: none;
+  }
+  .dropzone.has-image .scrim { display: block; }
+  .dz-icon { color: var(--text-faint); font-size: 26px; }
+  .dz-text { color: var(--text-muted); font-size: 13.5px; }
+  .dz-text b { color: var(--text); font-weight: 500; }
+  .dz-hint { color: var(--text-faint); font-size: 11.5px; font-family: 'IBM Plex Mono', monospace; }
+  input[type=file] { display: none; }
+
+  .gradcam-toggle {
+    position: absolute; bottom: 14px; right: 14px; z-index: 2;
+    display: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    background: rgba(10,18,16,0.85);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 7px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+  .gradcam-toggle.show { display: inline-flex; align-items: center; gap: 6px; }
+  .gradcam-toggle.active { color: var(--copper); border-color: var(--copper-dim); }
+  .heat-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background: radial-gradient(circle at 62% 44%, rgba(196,102,31,0.55) 0%, rgba(196,102,31,0.25) 18%, transparent 40%),
+                radial-gradient(circle at 40% 60%, rgba(196,102,31,0.35) 0%, transparent 30%);
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+  }
+  .heat-overlay.on { opacity: 1; }
+
+  .run-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 13px;
+    border-radius: 9px;
+    border: 1px solid var(--copper-dim);
+    background: linear-gradient(180deg, var(--copper), #A8551A);
+    color: #0A1412;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: filter .15s, transform .1s;
+  }
+  .run-btn:hover { filter: brightness(1.08); }
+  .run-btn:active { transform: scale(0.99); }
+  .run-btn:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+  .run-btn.loading { color: transparent; position: relative; }
+  .run-btn.loading::after {
+    content: "";
+    position: absolute; left: 50%; top: 50%;
+    width: 16px; height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid rgba(10,20,18,0.35);
+    border-top-color: #0A1412;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Results panel */
+  .placeholder {
+    height: 100%;
+    min-height: 260px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text-faint);
+    font-size: 13px;
+    text-align: center;
+    gap: 8px;
+    padding: 20px;
+  }
+  .placeholder .glyph { font-size: 22px; opacity: 0.5; }
+
+  .results { display: none; }
+  .results.show { display: block; }
+
+  .grade-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    border-radius: 9px;
+    margin-bottom: 18px;
+    border: 1px solid var(--border);
+  }
+  .grade-banner .left { display: flex; align-items: center; gap: 12px; }
+  .grade-swatch { width: 10px; height: 32px; border-radius: 3px; }
+  .grade-banner .glabel { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; }
+  .grade-banner .gsub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .grade-banner .conf { font-family: 'IBM Plex Mono', monospace; font-size: 20px; }
+
+  .bars { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .bar-row { display: grid; grid-template-columns: 92px 1fr 42px; align-items: center; gap: 10px; }
+  .bar-row .label { font-size: 12px; color: var(--text-muted); }
+  .bar-track { height: 7px; background: var(--bg-2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-soft); }
+  .bar-fill { height: 100%; border-radius: 4px; width: 0%; transition: width 1s cubic-bezier(.2,.7,.2,1); }
+  .bar-row .pct { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint); text-align: right; }
+
+  .referral {
+    padding: 14px 16px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .referral .rlabel { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 4px; }
+  .referral .raction { font-size: 14px; font-weight: 500; }
+  .referral .ricon { font-size: 18px; margin-top: 1px; }
+
+  .demo-flag {
+    margin-top: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-faint);
+    border-top: 1px dashed var(--border-soft);
+    padding-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ---------- PIPELINE STRIP ---------- */
+  .pipeline {
+    margin-top: 60px;
+    padding-top: 44px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .pipeline .eyebrow { margin-bottom: 10px; }
+  .pipeline h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    margin: 0 0 34px;
+  }
+  .pipe-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .pipe-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  }
+  .pipe-card .pk {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--copper);
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+  .pipe-card h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+  .pipe-card p {
+    font-size: 12.8px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .pipe-arrow {
+    display: none;
+  }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border-soft);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11.5px;
+    color: var(--text-faint);
+  }
+
+  @media (max-width: 880px) {
+    .hero { grid-template-columns: 1fr; gap: 30px; }
+    .workspace { grid-template-columns: 1fr; }
+    .pipe-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 32px; }
+  }
+
+  :focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="nav">
+    <div class="wordmark">
+      <span class="name">Early<em>DR</em></span>
+      <span class="tag">Retinal screening console</span>
+    </div>
+    <div class="nav-right">
+      <div class="tabs">
+        <button class="tab-btn active" data-page="console" onclick="showPage('console', this)">Screening console</button>
+        <button class="tab-btn" data-page="about" onclick="showPage('about', this)">About the project</button>
+      </div>
+      <div class="status-pill"><span class="dot"></span> MODEL: EFFICIENTNET-B3 · v0.3-demo</div>
+    </div>
+  </div>
+
+  <section id="page-console" class="page active">
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Diabetic retinopathy · early-stage screening</div>
+      <h1>Read the retina<br><em>before</em> it reads back.</h1>
+      <p class="lead">Upload a fundus image and get a graded diabetic retinopathy read in seconds — tuned specifically to catch Mild and Moderate cases, the stages where treatment still works.</p>
+      <div class="scale-strip">
+        <div style="background:var(--g-nodr)">NO DR</div>
+        <div style="background:var(--g-mild)">MILD</div>
+        <div style="background:var(--g-mod)">MODERATE</div>
+        <div style="background:var(--g-severe)">SEVERE</div>
+        <div style="background:var(--g-prolif); color:#ECEEE9;">PROLIF.</div>
+      </div>
+      <div class="scale-labels"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span></div>
+    </div>
+
+    <div class="gauge-card">
+      <div class="cap">Severity dial</div>
+      <svg id="gaugeSvg" viewBox="0 0 230 140">
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#35B08F"/>
+            <stop offset="25%" stop-color="#C4B23E"/>
+            <stop offset="50%" stop-color="#D9902C"/>
+            <stop offset="75%" stop-color="#C4551F"/>
+            <stop offset="100%" stop-color="#8E2A22"/>
+          </linearGradient>
+        </defs>
+        <path d="M 20 120 A 95 95 0 0 1 210 120" fill="none" stroke="#1A2825" stroke-width="14" stroke-linecap="round"/>
+        <path d="M 20 120 A 95 95 0 0 1 210 120" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="298" stroke-dashoffset="298" id="gaugeArc"/>
+        <line id="needle" x1="115" y1="120" x2="115" y2="40" stroke="#ECEEE9" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90 115 120)"/>
+        <circle cx="115" cy="120" r="5" fill="#ECEEE9"/>
+      </svg>
+      <div class="gauge-readout">
+        <div class="gauge-grade" id="gaugeGradeText" style="color:var(--text-faint)">Awaiting image</div>
+        <div class="gauge-sub" id="gaugeSubText">Run a screening to populate</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <div class="panel">
+      <h3>01 · Input <span style="color:var(--text-faint); font-weight:400;">fundus image</span></h3>
+      <div class="dropzone" id="dropzone">
+        <div class="dz-icon">◎</div>
+        <div class="dz-text"><b>Click to upload</b> or drag a fundus photo</div>
+        <div class="dz-hint">JPG / PNG · single eye · centered on macula</div>
+        <div class="heat-overlay" id="heatOverlay"></div>
+        <div class="scrim"></div>
+        <button class="gradcam-toggle" id="camToggle">◐ Grad-CAM overlay</button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+      <button class="run-btn" id="runBtn" disabled>Run screening</button>
+    </div>
+
+    <div class="panel">
+      <h3>02 · Output <span id="resultsMeta" style="color:var(--text-faint); font-weight:400;"></span></h3>
+
+      <div class="placeholder" id="placeholder">
+        <div class="glyph">⟡</div>
+        <div>No result yet.<br>Upload an image and run screening to see<br>the grade, confidence, and referral action.</div>
+      </div>
+
+      <div class="results" id="results">
+        <div class="grade-banner" id="gradeBanner">
+          <div class="left">
+            <div class="grade-swatch" id="gradeSwatch"></div>
+            <div>
+              <div class="glabel" id="gradeLabel">—</div>
+              <div class="gsub" id="gradeDesc">—</div>
+            </div>
+          </div>
+          <div class="conf" id="gradeConf">—</div>
+        </div>
+
+        <div class="bars" id="bars"></div>
+
+        <div class="referral" id="referral">
+          <div class="ricon" id="refIcon">—</div>
+          <div>
+            <div class="rlabel">Recommended action</div>
+            <div class="raction" id="refAction">—</div>
+          </div>
+        </div>
+
+        <div class="demo-flag">⚠ DEMO INTERFACE — this result is simulated for presentation purposes and is not produced by a trained clinical model. Not for real diagnostic use.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="eyebrow">How a patient is classified</div>
+    <h2>Input → model → referral, in three steps</h2>
+    <div class="pipe-grid">
+      <div class="pipe-card">
+        <div class="pk">STEP 1 — INPUT</div>
+        <h4>Fundus photograph</h4>
+        <p>A single retinal image is cropped to the circular field of view, resized, and contrast-enhanced (CLAHE) so lesion patterns are consistent regardless of camera or lighting.</p>
+      </div>
+      <div class="pipe-card">
+        <div class="pk">STEP 2 — MODEL</div>
+        <h4>5-class severity grading</h4>
+        <p>A CNN/ViT/MobileNet backbone outputs a probability for each of the five ICDR grades. The class with the highest probability is the predicted grade; the full distribution is kept visible.</p>
+      </div>
+      <div class="pipe-card">
+        <div class="pk">STEP 3 — OUTPUT</div>
+        <h4>Referral decision</h4>
+        <p>Grades collapse into one of three actions — routine, follow-up in 3–6 months, or refer to a specialist — so a non-specialist worker can act on the result immediately.</p>
+      </div>
+    </div>
+  </div>
+
+  </section>
+
+  <section id="page-about" class="page">
+
+    <div class="about-hero">
+      <div class="eyebrow">Project overview</div>
+      <h2>Catching diabetic retinopathy at the stage it's still treatable.</h2>
+      <p>EarlyDR is a deep-learning screening assistant for diabetic retinopathy (DR) — built for low-resource clinics that have a fundus camera but no on-site retina specialist. It grades a retinal photograph on the standard 5-point severity scale, then translates that grade into a plain referral action a non-specialist can act on immediately. Unlike most published DR classifiers, which optimize for overall accuracy, EarlyDR is tuned specifically to catch Mild and Moderate cases reliably — the stages where a referral can still prevent vision loss.</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="num">5</div><div class="lbl">Severity grades classified — No DR through Proliferative DR</div></div>
+      <div class="stat-card"><div class="num">3</div><div class="lbl">Public datasets used — APTOS 2019, EyePACS, IDRiD</div></div>
+      <div class="stat-card"><div class="num">3</div><div class="lbl">Model architectures compared — CNN, ViT, and edge MobileNet</div></div>
+    </div>
+
+    <div class="about-section">
+      <div class="eyebrow">SDG mapping</div>
+      <h3>Good health and well-being</h3>
+      <div class="sdg-card">
+        <div class="sdg-badge"><span class="n">3</span><span class="s">SDG</span></div>
+        <div>
+          <div class="stitle">Reducing preventable blindness from a non-communicable disease</div>
+          <div class="stext">Diabetic retinopathy is a direct complication of diabetes and a leading cause of preventable blindness. EarlyDR supports SDG 3.4 (reducing disability from NCDs) and SDG 3.8 (access to essential health services) by giving low-resource clinics a first-line screening pass, so scarce ophthalmologist time is reserved for confirmed, high-risk referrals.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="eyebrow">Dataset</div>
+      <h3>Three public, expert-labeled sources</h3>
+      <div class="card-grid-3">
+        <div class="info-card accent-copper">
+          <div class="ik">Kaggle</div>
+          <h4>APTOS 2019</h4>
+          <p>~3,662 labeled fundus images, 5-class severity grading. Clean and competition-quality — used for initial model development.</p>
+          <div class="meta-row">Role: primary training set</div>
+        </div>
+        <div class="info-card accent-teal">
+          <div class="ik">Kaggle</div>
+          <h4>EyePACS</h4>
+          <p>35,000+ images from the EyePACS screening network. Larger and more heterogeneous — used for scale and robustness.</p>
+          <div class="meta-row">Role: scale + robustness</div>
+        </div>
+        <div class="info-card accent-purple">
+          <div class="ik">IEEE Dataport</div>
+          <h4>IDRiD</h4>
+          <p>Smaller, expert-annotated set with severity, DME grading, and lesion-level segmentation masks.</p>
+          <div class="meta-row">Role: high-trust validation</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="eyebrow">Model comparison</div>
+      <h3>One dataset, three architecture tracks</h3>
+      <div class="card-grid-3">
+        <div class="info-card accent-purple">
+          <div class="ik">Track 1</div>
+          <h4>CNN backbone</h4>
+          <p>ResNet-50 / EfficientNet, transfer-learned. The high-capacity baseline the other two tracks are measured against.</p>
+          <div class="meta-row">Optimized for: accuracy</div>
+        </div>
+        <div class="info-card accent-purple">
+          <div class="ik">Track 2</div>
+          <h4>Vision transformer</h4>
+          <p>ViT-Base/16, fine-tuned with attention-map explainability. Tests whether global attention beats local receptive fields.</p>
+          <div class="meta-row">Optimized for: representation</div>
+        </div>
+        <div class="info-card accent-purple">
+          <div class="ik">Track 3</div>
+          <h4>MobileNet, quantized</h4>
+          <p>MobileNetV2/V3 with INT8 post-training quantization. Built to run inference on basic clinic hardware.</p>
+          <div class="meta-row">Optimized for: deployability</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-section" style="margin-bottom: 0;">
+      <div class="eyebrow">Novelty</div>
+      <h3>What's different about this approach</h3>
+      <div class="novelty-list">
+        <div class="novelty-item"><span class="nn">01</span><span class="nt"><b>Early-stage-first evaluation</b> — Mild/Moderate recall is the primary metric, not aggregate accuracy, using class-weighted loss and per-class reporting.</span></div>
+        <div class="novelty-item"><span class="nn">02</span><span class="nt"><b>Three-way architecture comparison</b> — CNN, ViT, and MobileNet trained on identical data and metrics, producing an explicit accuracy-vs-cost curve.</span></div>
+        <div class="novelty-item"><span class="nn">03</span><span class="nt"><b>Edge deployability as a constraint</b> — the MobileNet track is quantized specifically to run on low-cost clinic hardware, not added as an afterthought.</span></div>
+        <div class="novelty-item"><span class="nn">04</span><span class="nt"><b>Cross-dataset robustness testing</b> — training on one dataset and validating on another to explicitly measure domain-shift, rarely reported at this level.</span></div>
+      </div>
+    </div>
+
+  </section>
+
+  <footer>
+    <span>EarlyDR — early-stage diabetic retinopathy screening</span>
+    <span>Trained on APTOS 2019 · EyePACS · IDRiD</span>
+  </footer>
+
+</div>
+
+<script>
+  function showPage(name, btn){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const runBtn = document.getElementById('runBtn');
+  const placeholder = document.getElementById('placeholder');
+  const results = document.getElementById('results');
+  const camToggle = document.getElementById('camToggle');
+  const heatOverlay = document.getElementById('heatOverlay');
+  const resultsMeta = document.getElementById('resultsMeta');
+
+  let uploadedImg = null;
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  ['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  function handleFile(file){
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      let existing = dropzone.querySelector('img');
+      if (!existing) {
+        existing = document.createElement('img');
+        dropzone.prepend(existing);
+      }
+      existing.src = e.target.result;
+      dropzone.classList.add('has-image');
+      dropzone.querySelector('.dz-icon').style.display = 'none';
+      dropzone.querySelector('.dz-text').style.display = 'none';
+      dropzone.querySelector('.dz-hint').style.display = 'none';
+      runBtn.disabled = false;
+      uploadedImg = e.target.result;
+      results.classList.remove('show');
+      placeholder.style.display = 'flex';
+      camToggle.classList.remove('show');
+      heatOverlay.classList.remove('on');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const scenarios = [
+    { grade: 0, label: 'No DR', desc: 'No visible retinal damage', color: 'var(--g-nodr)',
+      dist: [0.91, 0.06, 0.02, 0.01, 0.00],
+      ref: { icon: '✓', action: 'Routine — re-screen in 12 months' } },
+    { grade: 2, label: 'Moderate', desc: 'Extensive vessel changes, early-stage referable', color: 'var(--g-mod)',
+      dist: [0.04, 0.18, 0.61, 0.14, 0.03],
+      ref: { icon: '◐', action: 'Follow-up — re-screen in 3–6 months' } },
+    { grade: 3, label: 'Severe', desc: 'Widespread hemorrhage / vessel closure', color: 'var(--g-severe)',
+      dist: [0.01, 0.03, 0.12, 0.71, 0.13],
+      ref: { icon: '⚠', action: 'Refer to ophthalmologist' } },
+  ];
+
+  const gradeNames = ['No DR','Mild','Moderate','Severe','Proliferative'];
+  const gradeColors = ['var(--g-nodr)','var(--g-mild)','var(--g-mod)','var(--g-severe)','var(--g-prolif)'];
+  const arcLen = 298;
+
+  runBtn.addEventListener('click', () => {
+    runBtn.classList.add('loading');
+    runBtn.disabled = true;
+    setTimeout(() => {
+      runBtn.classList.remove('loading');
+      runBtn.disabled = false;
+      showResult(scenarios[Math.floor(Math.random() * scenarios.length)]);
+    }, 1400);
+  });
+
+  function showResult(s){
+    placeholder.style.display = 'none';
+    results.classList.add('show');
+    resultsMeta.textContent = '· ' + (0.4 + Math.random()*0.3).toFixed(2) + 's inference';
+
+    document.getElementById('gradeSwatch').style.background = s.color;
+    document.getElementById('gradeLabel').textContent = s.label;
+    document.getElementById('gradeDesc').textContent = s.desc;
+    document.getElementById('gradeConf').textContent = Math.round(s.dist[s.grade]*100) + '%';
+    document.getElementById('gradeConf').style.color = s.color;
+
+    const bars = document.getElementById('bars');
+    bars.innerHTML = '';
+    gradeNames.forEach((name, i) => {
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="label">${name}</div>
+        <div class="bar-track"><div class="bar-fill" style="background:${gradeColors[i]}"></div></div>
+        <div class="pct">${Math.round(s.dist[i]*100)}%</div>`;
+      bars.appendChild(row);
+      requestAnimationFrame(() => {
+        row.querySelector('.bar-fill').style.width = (s.dist[i]*100) + '%';
+      });
+    });
+
+    document.getElementById('refIcon').textContent = s.ref.icon;
+    document.getElementById('refAction').textContent = s.ref.action;
+
+    // gauge
+    const gauge = document.getElementById('gaugeGradeText');
+    const sub = document.getElementById('gaugeSubText');
+    gauge.textContent = s.label;
+    gauge.style.color = s.color;
+    sub.textContent = 'Grade ' + s.grade + ' of 4 · ' + Math.round(s.dist[s.grade]*100) + '% confidence';
+
+    const arc = document.getElementById('gaugeArc');
+    const frac = s.grade / 4;
+    arc.style.strokeDashoffset = arcLen - (arcLen * (0.15 + frac*0.85));
+
+    const needle = document.getElementById('needle');
+    const angle = -90 + frac * 180;
+    needle.setAttribute('transform', `rotate(${angle} 115 120)`);
+
+    camToggle.classList.add('show');
+  }
+
+  camToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    camToggle.classList.toggle('active');
+    heatOverlay.classList.toggle('on');
+  });
+</script>
+</body>
+</html>

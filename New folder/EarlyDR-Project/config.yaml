@@ -1,0 +1,29 @@
+seed: 42
+
+classes:
+  0: "No DR"
+  1: "Mild"
+  2: "Moderate"
+  3: "Severe"
+  4: "Proliferative DR"
+
+paths:
+  raw:
+    aptos_small: "data/raw/aptos_small/gaussian_filtered_images"
+    idrid: "data/raw/idrid/B. Disease Grading"
+  processed:
+    aptos_small: "data/processed/aptos_small"
+    idrid: "data/processed/idrid"
+  splits_dir: "outputs/splits"
+  eda_dir: "outputs/eda"
+  checkpoints_dir: "outputs/checkpoints"
+
+preprocessing:
+  image_size: 224
+  clahe_clip_limit: 2.0
+  clahe_tile_grid: 8
+
+split:
+  train: 0.70
+  val: 0.15
+  test: 0.15
